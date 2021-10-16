@@ -50,7 +50,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'firstname' => 'required|string|between:2,100',
             'lastname' => 'required|string|between:2,100',
-            'email' => 'required|string|email|max:100|unique:users',
+            'email' => 'required|string|email|max:100',
             'password' => 'required|string|min:6',
             'confirm_password' => 'required|same:password',
         ]);
@@ -59,6 +59,13 @@ class AuthController extends Controller
             return response()->json($validator->errors()->toJson(), 400);
         }
 
+        //insted of unique:users (in email line 53) 
+        $user = User::where('email', '=', $request->input('email'))->first();
+        if ($user != null){
+            return response()->json(['message' => 'Mail already taken......']);
+        }
+
+        
         $user = User::create(array_merge(
                     $validator->validated(),
                     ['password' => bcrypt($request->password)]
@@ -110,7 +117,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             /*'user' => auth()->user(), */
-            'message' => 'User successfully refresh'
+            'message' => 'User successfully login'
         ]);
     }
 
