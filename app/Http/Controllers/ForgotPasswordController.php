@@ -23,7 +23,8 @@ class ForgotPasswordController extends Controller
      * by passing args and successfully sending the password reset link to the specified email id.
     */
 
-    public function forgotPassword(Request $request) {
+    public function forgotPassword(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:100',
         ]);
@@ -32,8 +33,11 @@ class ForgotPasswordController extends Controller
 
         if (!$user)
         {
-            return response()->json([ 'message' => 'we can not find a user with that email address'],404);
+            return response()->json([
+                'message' => 'can not find the email address'
+            ],404);
         }
+        
         $passwordReset = PasswordReset::updateOrCreate(
             ['email' => $user->email],
 
@@ -42,14 +46,14 @@ class ForgotPasswordController extends Controller
                 'token' => JWTAuth::fromUser($user)
             ]
         );
-
+        
         if ($user && $passwordReset) 
         {
             $sendEmail = new SendEmailRequest();
-            $sendEmail->sendEmailRequest($user->email,$passwordReset->token);
+            $sendEmail->sendMail($user->email,$passwordReset->token);
         }
 
-        return response()->json(['message' => 'we have emailed your password reset link to respective mail'],200);
+        return response()->json(['message' => 'password reset link genereted in mail'],205);
 
     }
 
