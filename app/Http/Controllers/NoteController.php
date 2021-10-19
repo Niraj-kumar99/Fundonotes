@@ -30,10 +30,9 @@ class NoteController extends Controller
         $note->user_id = Auth::user()->id;
         $note->save();
 
-        return response()->json([
-            'status' => 201, 
+        return response()->json([ 
             'message' => 'note created successfully'
-            ],400);
+            ],201);
             
     }
 
@@ -107,6 +106,36 @@ class NoteController extends Controller
                 'message' => 'Note deleted'
             ],201);
         }
+    }
+
+    public function allNotes()
+    {
+        $note = new Note;
+        $note->user_id = auth()->id();
+
+        if ($note->user_id == auth()->id()) 
+        {
+            $user = Note::select('id', 'title', 'description')
+                ->where([
+                    ['user_id', '=', $note->user_id],
+                    ['notes', '=', '0']
+                ])
+                ->get();
+            if ($user=='[]'){
+                return response()->json([
+                    'message' => 'Notes not found'
+                ], 404);
+            }
+            return
+            response()->json([
+                'notes' => $user,
+                'message' => 'Fetched Notes Successfully'
+            ], 201);
+        }
+        return response()->json([
+            'status' => 403, 
+            'message' => 'Invalid token'
+        ],403);
     }
 
 }

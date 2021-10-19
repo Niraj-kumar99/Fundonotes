@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
-use app\Http\Requests\SendEmailRequest;
+
 
 
 class AuthTest extends TestCase
@@ -117,13 +117,13 @@ class AuthTest extends TestCase
           {
             $response = $this->withHeaders([
                 'Content-Type' => 'Application/json',
-                'Authorization' => 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xMjcuMC4wLjE6ODAwMFwvYXBpXC9hdXRoXC9sb2dpbiIsImlhdCI6MTYzNDYzNDk1MCwiZXhwIjoxNjM0NjM4NTUwLCJuYmYiOjE2MzQ2MzQ5NTAsImp0aSI6IldZM0xaWXlZNWl5dGpSMzQiLCJzdWIiOjgsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.36JvJK4tPU7CztsJj4vyyQCQ2ETC415Npz-yyFuLplg'
             ])->json('POST', '/api/auth/resetpassword', [
-                "new_password" => "kumar3516123",
-                "confirm_password" => "kumar3516123"
+                "new_password" => "kumar3516",
+                "confirm_password" => "kumar3516",
+                "token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3RcL2FwaVwvYXV0aFwvZm9yZ290cGFzc3dvcmQiLCJpYXQiOjE2MzQ2NTExOTMsImV4cCI6MTYzNDY1NDc5MywibmJmIjoxNjM0NjUxMTkzLCJqdGkiOiJIVVl2bThwcHdmSDM1bkxCIiwic3ViIjo4LCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.fziPLSL71dgJoFKv0U-78m-bKqSje7aCR-I2Y9Zd-YE"
             ]);
             
-            $response->assertStatus(205)->assertJson(['message'=> 'Password updated successfull!']);
+            $response->assertStatus(201)->assertJson(['message'=> 'Password updated successfull!']);
           }
       }
       

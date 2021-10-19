@@ -39,6 +39,7 @@ Route::group([
     Route::get('/readnote', [NoteController::class, 'readNote_ByNoteId']);
     Route::post('/updatenote', [NoteController::class, 'updateNote_ByNote']);
     Route::post('/deletenote', [NoteController::class, 'delete_ByNote']);
+    Route::get('/allnotes', [NoteController::class, 'allNotes']);
 
     Route::post('/createlable', [LableController::class, 'createLable']);
     Route::get('/readlables', [LableController::class, 'readLableByLableId']);
