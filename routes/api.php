@@ -41,8 +41,10 @@ Route::group([
     Route::post('/deletenote', [NoteController::class, 'delete_ByNote']);
     Route::get('/allnotes', [NoteController::class, 'allNotes']);
 
-    Route::post('/createlable', [LableController::class, 'createLable']);
+    Route::post('/createlable', [LableController::class, 'createLableWithNoteID']);
+    Route::post('/createlablewithoutid', [LableController::class, 'creatLableWithoutId']);
     Route::get('/readlables', [LableController::class, 'readLableByLableId']);
     Route::post('/updatelable', [LableController::class, 'updateLableByLableId']);
     Route::post('/deletelable', [LableController::class, 'deleteLable']);
+    Route::get('/readalllables', [LableController::class, 'fetchAllLables']);
 });

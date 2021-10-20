@@ -3,24 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use App\Models\Note;
 use App\Models\User;
 use Validator;
 use JWTAuth;
 use Auth;
+use Exception;
 
 class NoteController extends Controller
 {
     /*Function creates Note */
     public function createNote(Request $request) {
-
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|between:2,100',
             'description' => 'required|string|between:5,2000',
         ]);
-
+        
         if($validator->fails())
         {
+            Log::info('minimun letters for title is 2 and for description is 5');
             return response()->json($validator->errors()->toJson(), 400);
         }
 
@@ -30,6 +34,11 @@ class NoteController extends Controller
         $note->user_id = Auth::user()->id;
         $note->save();
 
+        $value = Cache::remember('notes', 300, function () {
+            return DB::table('notes')->get();
+        });
+
+        Log::info('note created',['user_id'=>$note->user_id]);
         return response()->json([ 
             'message' => 'note created successfully'
             ],201);
@@ -42,12 +51,13 @@ class NoteController extends Controller
         $currentUser = JWTAuth::parseToken()->authenticate();
         $notes = $currentUser->notes()->find($id);
         if(!$notes){
+            Log::info('note you are searching is not present..');
             return response()->json([
                 'status' => 201, 
                 'message' => 'no note found'
                 ],400);
         } 
-
+    Log::info("note fetched",['user_id'=>$currentUser,'note_id'=>$request->id]);    
     return $notes;
 
     }
@@ -60,6 +70,7 @@ class NoteController extends Controller
         ]);
         if($validator->fails())
         {
+            Log::info('minimun letters for title is 2 and for description is 5 and noteId req');
             return response()->json($validator->errors()->toJson(), 404);
         }
 
@@ -68,6 +79,7 @@ class NoteController extends Controller
         $notes = $currentUser->notes()->find($id);
 
         if(!$notes){
+            Log::info('note you are searching is not present..');
             return response()->json([
                 'status' => 201, 
                 'message' => 'no note found'
@@ -76,6 +88,7 @@ class NoteController extends Controller
         $notes->fill($request->all());
 
         if($notes->save()) {
+            Log::info('notes updated',['user_id'=>$currentUser,'note_id'=>$request->id]);
             return response()->json([
                 'message' => 'Updation done'
             ],201);
@@ -89,6 +102,7 @@ class NoteController extends Controller
         ]);
         if($validator->fails())
         {
+            Log::info('noteId is a required field');
             return response()->json($validator->errors()->toJson(), 404);
         }
         $id = $request->input('id');
@@ -96,12 +110,14 @@ class NoteController extends Controller
         $notes = $currentUser->notes()->find($id);
 
         if(!$notes){
+            Log::info('note you are searching is not present for deletion..');
             return response()->json([
                 'status' => 201, 
                 'message' => 'no note found'
                 ],400);
         } 
         if($notes->delete()) {
+            Log::info('notes deleted',['user_id'=>$currentUser,'note_id'=>$request->id]);
             return response()->json([
                 'message' => 'Note deleted'
             ],201);
@@ -110,32 +126,24 @@ class NoteController extends Controller
 
     public function allNotes()
     {
-        $note = new Note;
-        $note->user_id = auth()->id();
-
-        if ($note->user_id == auth()->id()) 
+        $currentUser = JWTAuth::parseToken()->authenticate();
+        if ($currentUser)
         {
-            $user = Note::select('id', 'title', 'description')
-                ->where([
-                    ['user_id', '=', $note->user_id],
-                    ['notes', '=', '0']
-                ])
-                ->get();
-            if ($user=='[]'){
-                return response()->json([
-                    'message' => 'Notes not found'
-                ], 404);
+            $user = Note::select('notes.id', 'notes.title', 'notes.description')
+            ->where('notes.user_id','=',$currentUser->id)
+            ->get();
+        }
+        if ($user=='[]')
+            {
+                return response()->json(['message' => 'Notes not found'], 404);
             }
-            return
-            response()->json([
+            Log::info('Lables fetched',['notes.id'=>$currentUser->id]);
+            return response()->json([
                 'notes' => $user,
                 'message' => 'Fetched Notes Successfully'
             ], 201);
         }
-        return response()->json([
-            'status' => 403, 
-            'message' => 'Invalid token'
-        ],403);
     }
 
-}
+
+
