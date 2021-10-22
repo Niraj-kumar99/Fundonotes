@@ -11,6 +11,11 @@ use JWTAuth;
 
 class LableController extends Controller
 {
+    /*
+     *Function creates a lable to a perticular note
+     *by getting valid note_id , lable_name and a 
+     *valid authentication token from the user 
+    */
     public function createLableWithNoteID(Request $request) {
 
         $validator = Validator::make($request->all(), [
@@ -32,10 +37,14 @@ class LableController extends Controller
             return response()->json([
                 'status' => 201, 
                 'message' => 'lable created successfully'
-                ],400);
+                ],201);
         }
     }
-
+    /*
+    *Function creates a lable without getting a noteid
+     *user only have to provide a proper lable_name ie; min 2 and max 100
+     *and a valid authentication token .
+    */
     public function creatLableWithoutId(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -66,7 +75,11 @@ class LableController extends Controller
             }
         }
     }
-
+    /*
+     *Function fetch the lable details of a perticular lable 
+     *by taking a valid lable_id and proper authentication token
+     * from the user and return deltails of that lable .
+    */
     public function readLableByLableId(Request $request) {
         $id = $request->input('id');
         $currentUser = JWTAuth::parseToken()->authenticate();
@@ -79,6 +92,10 @@ class LableController extends Controller
         return $lables;
     }
 
+    /* 
+     *Function takes valid new lable_id and new lable_name from the user
+     *and fetches the old lable and updates with new lable_name
+    */
     public function updateLableByLableId(Request $request) {
         $validator = Validator::make($request->all(), [
             'id' => 'required',
@@ -106,7 +123,11 @@ class LableController extends Controller
             ],201);
         }
     }
-
+    /*
+     *Function takes perticular lable_id and a valid
+     *Authentication token as an input and fetch the old lable
+     *and performs delete operation .
+    */
     public function deleteLable(Request $request) {
         $validator = Validator::make($request->all(), [
             'id' => 'required',
@@ -133,6 +154,10 @@ class LableController extends Controller
             ],201);
         }
     }
+    /* 
+     *Function returns all the created lables of a perticular 
+     *user bearing a vaild authentication token
+    */
     public function fetchAllLables()
     {
         $currentUser = JWTAuth::parseToken()->authenticate();
