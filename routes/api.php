@@ -37,9 +37,18 @@ Route::group([
 
     Route::post('/createnote', [NoteController::class, 'createNote']);
     Route::get('/readnote', [NoteController::class, 'readNote_ByNoteId']);
-    Route::post('/updatenote', [NoteController::class, 'updateNote_ByNote']);
+    Route::post('/updatenote', [NoteController::class, 'updateNote_ByNoteId']);
     Route::post('/deletenote', [NoteController::class, 'delete_ByNote']);
     Route::get('/allnotes', [NoteController::class, 'allNotes']);
+
+    Route::post('/pinnote', [NoteController::class, 'pinNoteWithNoteId']);
+    Route::post('/unpinnote', [NoteController::class, 'unpinNoteWithNoteId']);
+    Route::get('/allpinnote', [NoteController::class, 'allPinNotes']);
+
+    Route::post('/archivenote', [NoteController::class, 'archiveNoteWithNoteId']);
+    Route::post('/unarchivenote', [NoteController::class, 'unarchiveNoteWithNoteId']);
+    Route::get('/allarchivenote', [NoteController::class, 'allArchivedNotes']);
+
 
     Route::post('/createlable', [LableController::class, 'createLableWithNoteID']);
     Route::post('/createlablewithoutid', [LableController::class, 'creatLableWithoutId']);
