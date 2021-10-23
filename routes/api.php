@@ -49,6 +49,11 @@ Route::group([
     Route::post('/unarchivenote', [NoteController::class, 'unarchiveNoteWithNoteId']);
     Route::get('/allarchivenote', [NoteController::class, 'allArchivedNotes']);
 
+    Route::post('/colornote', [NoteController::class, 'colorNoteWithNoteId']);
+    Route::get('/allcolornote', [NoteController::class, 'allColorNotes']);
+
+    Route::get('/paginatenote', [NoteController::class, 'paginationNote']);
+
 
     Route::post('/createlable', [LableController::class, 'createLableWithNoteID']);
     Route::post('/createlablewithoutid', [LableController::class, 'creatLableWithoutId']);

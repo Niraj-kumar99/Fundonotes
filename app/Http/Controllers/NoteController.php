@@ -221,7 +221,7 @@ class NoteController extends Controller
         $id = $request->input('id');
         $notes = $currentUser->notes()->find($id);
 
-        if($notes->pin == null)
+        if($notes->pin == 0)
         {
             Note::where('id' , $request->id)
             ->update(['pin'=>1]);
@@ -255,7 +255,7 @@ class NoteController extends Controller
         if($notes->pin == 1)
         {
             Note::where('id' , $request->id)
-            ->update(['pin'=>null]);
+            ->update(['pin'=> 0]);
             Log::info('successfully Unpined : ',['user'=>$currentUser, 'id'=>$request->id]);
             return response()->json(['message'=>'Note UnPined']);
         }
@@ -273,9 +273,11 @@ class NoteController extends Controller
         if ($currentUser)
         {
             $user = Note::select('notes.id', 'notes.title', 'notes.description')
-                ->where([['notes.user_id','=',$currentUser->id], ['pin','=', 1]])
+                ->where([['notes.user_id','=',$currentUser->id], ['pin','=', 1], ['archive', '=', 0]])
                 ->get();
         }
+
+
         if($user=='[]')
         {
             Log::info('There are no pin notes created by this user',['user'=>$currentUser]);
@@ -291,7 +293,7 @@ class NoteController extends Controller
     /**
      *Function takes perticular note_id and a valid
      *Authentication token as an input and if its a valid note_id then
-     *function updates note's achive status from Null to 1 .
+     *function updates note's achive status from 0 to 1 .
      */
     public function archiveNoteWithNoteId(Request $request)
     {
@@ -313,7 +315,7 @@ class NoteController extends Controller
                 'message' => 'note you are searching not available'
             ],404);
         }
-        if($notes->archive == null)
+        if($notes->archive == 0)
         {
             Note::where('id' , $request->id)
             ->update(['archive'=>1]);
@@ -329,7 +331,7 @@ class NoteController extends Controller
      *Function takes perticular note_id and a valid
      *Authentication token as an input and if its a valid note_id and 
      *the note is a archived note then this function updates it from archived to 
-     *unarchived note by changing its status from 1 to Null again.
+     *unarchived note by changing its status from 1 to 0 again.
     */
     public function unarchiveNoteWithNoteId(Request $request)
     {
@@ -347,7 +349,7 @@ class NoteController extends Controller
         if($notes->archive == 1)
         {
             Note::where('id' , $request->id)
-            ->update(['archive'=>null]);
+            ->update(['archive'=> 0]);
             Log::info('successfully Unarchived : ',['user'=>$currentUser, 'id'=>$request->id]);
             return response()->json(['message'=>'Note UnArchived']);
         }
@@ -379,6 +381,90 @@ class NoteController extends Controller
         ], 201);
         
     }
+
+    /**
+     * Function adds a perticular color to the note
+     * whose note id is given by the user and adds the perticular 
+     * color which the user given .
+     */
+    public function colorNoteWithNoteId(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+            'color_name' => 'string|between:3,2000'
+        ]);
+        if($validator->fails())
+        {
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+        $currentUser = JWTAuth::parseToken()->authenticate();
+        $id = $request->input('id');
+        $notes = $currentUser->notes()->find($id);
+
+        $colors  =  array(
+            'green'=>'(0,255,0)',
+            'red'=>'(255,0,0)',
+            'blue'=>'(0,0,255)',
+            'yellow'=>'(255,255,0)',
+            'grey'=>'(128,128,128)',
+            'purple'=>'(128,0,128)',
+            'brown'=>'(165,42,42)',
+            'orange'=>'(255,165,0)',
+            'pink'=>'(255,192,203)'
+        );
+
+        $name = strtolower($request->color_name);
+
+        if(isset($colors[$name]))
+        {
+            $user = Note::where('id', $request->id)
+                            ->update(['color_rgbVAlue' => $colors[$name] , 'color_name'=>$request->color_name]);
+                
+            Log::info('note colored',['user_id'=>$currentUser,'note_id'=>$request->id]);
+            return response()->json(['message' => 'Coloring Sucessful' ], 201);
+        }
+        return response()->json(['message' => 'We do not have this color in our bucket ......' ], 201);                                                                                 
+    }
+
+    /**
+     * Function accepts a valid Bearer Token provided by the 
+     * user and validates it if it's valid then returns all
+     * the colored notes only.
+     */
+    public function allColorNotes()
+    {
+        $currentUser = JWTAuth::parseToken()->authenticate();
+        if ($currentUser)
+        {
+            $user = Note::select('notes.id', 'notes.title', 'notes.description')
+                ->where([['notes.user_id','=',$currentUser->id], ['color_name','!=', 'white']])
+                ->get();
+        }
+        if($user=='[]')
+        {
+            Log::info('no color notes',['user'=>$currentUser]);
+            return response()->json(['message' => 'There are no color notes for this user'], 404);
+        }
+        return response()->json([
+            'lables' => $user,
+            'message' => 'All color notes are Fetched.....'
+        ], 201);
+    }
+
+    /**
+     * Functio used to view all notes
+     * ie; 5 notes per pase wise  will be displayed.
+     */
+    public function paginationNote()
+    {
+        $allNotes = Note::paginate(5); 
+
+        return response()->json([
+            'message' => 'Pagination aplied to all Notes',
+            'notes' =>  $allNotes,
+        ], 201);
+    }
+    
 }
 
 
