@@ -7,6 +7,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Auth;
+use Facade\Ignition\Support\Packagist\Package;
 
 class AuthController extends Controller
 {
@@ -64,12 +65,23 @@ class AuthController extends Controller
         if ($user != null){
             return response()->json(['message' => 'Mail already taken......']);
         }
+        /*
+        $user = User::create(
+            $validator->validated(),
+            ['password' => bcrypt($request->password)]
+        );*/
 
+        $user = User::create([
+            'firstname' => $request->firstname,
+            'lastname' => $request->lastname,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+        ]);
         
-        $user = User::create(array_merge(
+       /* $user = User::create(array_merge(
                     $validator->validated(),
                     ['password' => bcrypt($request->password)]
-                ));
+                ));*/
 
         return response()->json([
             'message' => 'User successfully registered',
