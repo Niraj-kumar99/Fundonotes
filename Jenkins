@@ -1,0 +1,21 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            composer install
+            mv .env.example .env
+            php artisan key:generate
+            ./vendor/bin/phpunit ./tests
+            rsync -vrzhe “ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa” — exclude vendor/ . ubuntu@54.224.13.144:/var/www/html
+            ssh ubuntu@54.224.13.144-i ~/.ssh/id_rsa -o StrictHostKeyChecking=no <<EOF
+            cd /var/www/test
+            composer install — no-dev
+            sudo chgrp -R www-data storage bootstrap/cache
+            sudo chmod -R ug+rwx storage bootstrap/cache
+            php artisan migrate 
+            php artisan db:seed
+        }
+        stage('Test') {
+            echo 'Skipping Testing..'
+        }
+    }
