@@ -71,7 +71,7 @@ class AuthController extends Controller
             ['password' => bcrypt($request->password)]
         );*/
 
-        $user = User::create([
+        $user = User::factory()->create([
             'firstname' => $request->firstname,
             'lastname' => $request->lastname,
             'email' => $request->email,
