@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CollaboratorController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\LableController;
 use App\Http\Controllers\NoteController;
@@ -61,4 +62,14 @@ Route::group([
     Route::post('/updatelable', [LableController::class, 'updateLableByLableId']);
     Route::post('/deletelable', [LableController::class, 'deleteLable']);
     Route::get('/readalllables', [LableController::class, 'fetchAllLables']);
+
+    Route::post('/sendcollab', [CollaboratorController::class, 'sendMailToCollaboratorWithNoteId']);
+    Route::get('/allcollab', [CollaboratorController::class, 'allSharedNotesToCollaborators']);
+    Route::post('/updationbycollab', [CollaboratorController::class, 'updateOnNoteByCollaborator']);
+    Route::post('/removecollab', [CollaboratorController::class, 'removeCollaborator']);
+
+
+    Route::get('/allnoteswithcollab', [NoteController::class, 'getAllNoteswithcollaborators']);
+    Route::get('/searchkeyword', [NoteController::class, 'searchEnteredKeyWord']);
+    
 });

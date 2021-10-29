@@ -44,6 +44,24 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
     ];
 
+    //mutator------------------------------------------------------------------
+    /*
+    public function setPasswordAttribute($password)
+    {
+        $this->attributes['password'] = bcrypt($password);
+    }
+    */
+
+    //accessors---------------------------------------------------------------------------
+    /*
+    public function getfirstnameAttribute($firstname)
+    {
+        return ucfirst($firstname);
+    }
+    */
+    //--------------------------------------------------------------------
+
+
         /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
@@ -70,5 +88,10 @@ class User extends Authenticatable implements JWTSubject
     public function lables()
     {
         return $this->hasMany('App\Models\Lable');
+    }
+
+    public function collaborators()
+    {
+        return $this->hasMany('App\Models\Collaborator');
     }
 }

@@ -180,8 +180,8 @@ class NoteController extends Controller
         {
             if ($currentUser)
             {
-                $user = Note::select('notes.id', 'notes.title', 'notes.description')
-                ->where('notes.user_id','=',$currentUser->id)
+                $user = Note::select('notes.id', 'notes.title', 'notes.description', 'notes.archive', 'notes.pin')
+                ->where([['notes.user_id','=',$currentUser->id], ['pin','=', 0], ['archive', '=', 0]])
                 ->get();
             }
         }
@@ -376,7 +376,7 @@ class NoteController extends Controller
             return response()->json(['message' => 'archive notes not found for this user'], 404);
         }
         return response()->json([
-            'lables' => $user,
+            'notes' => $user,
             'message' => 'All archived notes are Fetched.....'
         ], 201);
         
@@ -391,7 +391,7 @@ class NoteController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required',
-            'color_name' => 'string|between:3,2000'
+            'color' => 'string|between:3,2000'
         ]);
         if($validator->fails())
         {
@@ -402,15 +402,15 @@ class NoteController extends Controller
         $notes = $currentUser->notes()->find($id);
 
         $colors  =  array(
-            'green'=>'(0,255,0)',
-            'red'=>'(255,0,0)',
-            'blue'=>'(0,0,255)',
-            'yellow'=>'(255,255,0)',
-            'grey'=>'(128,128,128)',
-            'purple'=>'(128,0,128)',
-            'brown'=>'(165,42,42)',
-            'orange'=>'(255,165,0)',
-            'pink'=>'(255,192,203)'
+            'green'=>'rgb(0,255,0)',
+            'red'=>'rgb(255,0,0)',
+            'blue'=>'rgb(0,0,255)',
+            'yellow'=>'rgb(255,255,0)',
+            'grey'=>'rgb(128,128,128)',
+            'purple'=>'rgb(128,0,128)',
+            'brown'=>'rgb(165,42,42)',
+            'orange'=>'rgb(255,165,0)',
+            'pink'=>'rgb(255,192,203)'
         );
 
         $name = strtolower($request->color_name);
@@ -418,7 +418,7 @@ class NoteController extends Controller
         if(isset($colors[$name]))
         {
             $user = Note::where('id', $request->id)
-                            ->update(['color_rgbVAlue' => $colors[$name] , 'color_name'=>$request->color_name]);
+                            ->update(['color' => $colors[$name] ]);
                 
             Log::info('note colored',['user_id'=>$currentUser,'note_id'=>$request->id]);
             return response()->json(['message' => 'Coloring Sucessful' ], 201);
@@ -457,16 +457,78 @@ class NoteController extends Controller
      */
     public function paginationNote()
     {
-        $allNotes = Note::paginate(5); 
+        $allNotes = Note::paginate(3); 
 
         return response()->json([
             'message' => 'Pagination aplied to all Notes',
             'notes' =>  $allNotes,
         ], 201);
     }
+
+
+    public function searchEnteredKeyWord(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'search' => 'required|string'
+        ]);
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+
+        $searchKey = $request->input('search');
+        $currentUser = JWTAuth::parseToken()->authenticate();
+
+        if ($currentUser) 
+        {
+            $usernotes = Note::leftJoin('collaborators', 'collaborators.note_id', '=', 'notes.id')->leftJoin('lables', 'lables.note_id', '=', 'notes.id')
+            ->select('notes.id','notes.title','notes.description','notes.pin','notes.archive','notes.color','collaborators.email as Collabarator','lables.lable_name')
+            ->where('notes.user_id','=',$currentUser->id)->Where('notes.title', 'like','%'.$searchKey.'%')
+            ->orWhere('notes.user_id','=',$currentUser->id)->Where('notes.description', 'like','%'.$searchKey.'%')
+            ->orWhere('notes.user_id','=',$currentUser->id)->Where('lables.lable_name', 'like','%'.$searchKey.'%')
+            ->orWhere('collaborators.email','=',$currentUser->email)->Where('notes.title', 'like','%'.$searchKey.'%')
+            ->orWhere('collaborators.email','=',$currentUser->email)->Where('notes.description', 'like','%'.$searchKey.'%')
+            ->orWhere('collaborators.email','=',$currentUser->email)->Where('lables.lable_name', 'like','%'.$searchKey.'%')
+            ->get();
+
+            if ($usernotes == '[]')
+            {
+                return response()->json(['message' => 'No results'], 404); 
+            }
+            return response()->json([
+                'message' => 'Fetched Notes Successfully',
+                'notes' => $usernotes
+            ], 201);   
+        }
+        return response()->json(['message' => 'Invalid authorisation token'],403);
+    }
+
+
+
+
+    public function getAllNoteswithcollaborators()
+    {
+        $currentUser = JWTAuth::parseToken()->authenticate();
+
+        if ($currentUser) 
+        {
+            $user = Note::leftJoin('collaborators', 'collaborators.note_id', '=', 'notes.id')->leftJoin('lables', 'lables.note_id', '=', 'notes.id')
+            ->select('notes.id','notes.title','notes.description','notes.pin','notes.archive','notes.color_rgbValue','collaborators.email as Collabarator','lables.lable_name')
+            ->where('notes.pin','=','0')->where('notes.archive','=','0')
+            ->where('notes.user_id','=',$currentUser->id)->orWhere('collaborators.email','=',$currentUser->email)->get();
+                
+            if ($user=='[]')
+            {
+                return response()->json(['message' => 'Notes not found'], 404);
+            }
+            return response()->json([
+                'notes' => $user,
+                'message' => 'Fetched Notes Successfully'
+            ], 201);
+        }
+        return response()->json([ 'message' => 'Invalid token'],403);
+    }
     
 }
-
-
-
 
