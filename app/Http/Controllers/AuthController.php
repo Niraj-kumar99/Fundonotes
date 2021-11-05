@@ -47,6 +47,8 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+    
+    
     public function register(Request $request) {
         $validator = Validator::make($request->all(), [
             'firstname' => 'required|string|between:2,100',
@@ -60,10 +62,10 @@ class AuthController extends Controller
             return response()->json($validator->errors()->toJson(), 400);
         }
 
-        //insted of unique:users (in email line 53) 
-        $user = User::where('email', '=', $request->input('email'))->first();
-        if ($user != null){
-            return response()->json(['message' => 'Mail already taken......']);
+        $user = User::where('email', $request->email)->first();
+        if ($user)
+        {
+            return response()->json(['message' => 'The email has already been taken'],401);
         }
         /*
         $user = User::create(
@@ -71,16 +73,17 @@ class AuthController extends Controller
             ['password' => bcrypt($request->password)]
         );*/
 
-        $user = User::factory()->create([
+        $user = User::create([
             'firstname' => $request->firstname,
             'lastname' => $request->lastname,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-        ]);
+            ]);
         
        /* $user = User::create(array_merge(
                     $validator->validated(),
-                    ['password' => bcrypt($request->password)]
+     
+               ['password' => bcrypt($request->password)]
                 ));*/
 
         return response()->json([
@@ -88,7 +91,6 @@ class AuthController extends Controller
             'user' => $user
         ], 201);
     }
-
         /**
      * Log the user out (Invalidate the token).
      *
